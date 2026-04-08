@@ -1,0 +1,70 @@
+const request = require("supertest");
+const app = require("../../app");
+
+describe("Test GET /launches", () => {
+    it("Should respond with 200 success", async () => {
+        const response = await request(app)
+            .get("/launches")
+            .expect("Content-Type", /json/)
+            .expect(200);
+    });
+});
+
+describe("Test POST /launches", () => {
+    const completeLaunchData = {
+        mission: "test",
+        rocket: "123A",
+        target: "Kepler-186 f",
+        launchDate: "January 4, 2028"
+    };
+    const launchDataWithoutDate = {
+        mission: "test",
+        rocket: "123A",
+        target: "Kepler-186 f"
+    };
+
+    const launchDataWithInvalidDate = {
+        mission: "test",
+        rocket: "123A",
+        target: "Kepler-186 f",
+        launchDate: "zzz"
+    };
+
+    it("Should respond with 201 created", async () => {
+        const response = await request(app)
+            .post("/launches")
+            .send(completeLaunchData)
+            .expect(201)
+            .expect("Content-type", /json/);
+
+        const requestDate = new Date(completeLaunchData.launchDate).valueOf();
+        const responseDate = new Date(response.body.launchDate).valueOf();
+
+        expect(requestDate).toBe(responseDate);
+        expect(response.body).toMatchObject(launchDataWithoutDate);
+    });
+
+    it("Should catch missing required properties", async () => {
+        const response = await request(app)
+            .post("/launches")
+            .send(launchDataWithoutDate)
+            .expect(400)
+            .expect("Content-type", /json/);
+
+        expect(response.body).toStrictEqual({
+            error: "Missing required launch property"
+        });
+    });
+
+    it("Should catch invalid dates", async () => {
+        const response = await request(app)
+            .post("/launches")
+            .send(launchDataWithInvalidDate)
+            .expect(400)
+            .expect("Content-type", /json/);
+
+        expect(response.body).toStrictEqual({
+            error: "Invalid launch date"
+        });
+    });
+});
