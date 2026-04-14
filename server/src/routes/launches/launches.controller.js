@@ -1,7 +1,11 @@
+const { request } = require("../../app");
 const { getAllLaunches, existsLaunchWithId, abortLaunchById, scheduleNewLaunch } = require("../../models/launches.model");
+const { getPagination } = require("../../services/query");
 
 const getAllLaunchesController = async (req, res) => {
-    return res.status(200).json(await getAllLaunches());
+    const { skip, limit } = getPagination(req.query);
+    const launches = await getAllLaunches(skip, limit);
+    return res.status(200).json(launches);
 };
 
 async function addNewLaunchController(req, res) {
