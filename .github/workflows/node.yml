@@ -6,16 +6,21 @@ on:
     branches: [main]
 jobs:
   build:
+    env:
+      CI: true
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: ${{matrix.node-version}}
       - name: Install server deps
         working-directory: server
         run: npm install
-        
+
       - name: Install client deps
         working-directory: client
         run: npm install
@@ -23,3 +28,7 @@ jobs:
       - name: Build client
         working-directory: client
         run: npm run build
+
+      - name: Test client
+        working-directory: client
+        run : npm test
